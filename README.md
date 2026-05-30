@@ -68,7 +68,7 @@ nano config.ini
 ```ini
 [singbox]
 # sing-box 设备的 API 地址（改成你自己的设备 IP 和端口）
-api_url = http://192.168.2.200:9095
+api_url = http://192.168.2.1:9090
 
 # Clash API 密钥（在 sing-box 配置中设置的 secret）
 secret = 你的密钥
@@ -95,7 +95,7 @@ port = 8080
 > 在 sing-box 的配置文件中找到 `experimental.clash_api` 部分，例如：
 > ```json
 > "clash_api": {
->   "external_controller": "0.0.0.0:9095",
+>   "external_controller": "0.0.0.0:9090",
 >   "secret": "你的密钥"
 > }
 > ```
