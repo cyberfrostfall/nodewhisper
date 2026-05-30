@@ -231,7 +231,7 @@ Configuration reference:
 ```ini
 [singbox]
 # sing-box device API address (use your device's IP and port)
-api_url = http://192.168.2.200:9095
+api_url = http://192.168.2.1:9090
 
 # Clash API secret (set in your sing-box config)
 secret = your_secret_here
@@ -258,7 +258,7 @@ port = 8080
 > Look for the `experimental.clash_api` section in your sing-box config:
 > ```json
 > "clash_api": {
->   "external_controller": "0.0.0.0:9095",
+>   "external_controller": "0.0.0.0:9090",
 >   "secret": "your_secret"
 > }
 > ```
