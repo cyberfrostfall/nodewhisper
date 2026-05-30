@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+venv/
+.venv/
+
+# Data
+*.db
+
+# Config (contains secrets)
+config.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store

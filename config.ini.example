@@ -1,0 +1,17 @@
+[singbox]
+# sing-box API address
+api_url = http://192.168.1.1:9095
+# clash API secret
+secret = your_secret_here
+# delay test target URL
+test_url = http://www.gstatic.com/generate_204
+# delay timeout (ms)
+timeout = 3000
+
+[monitor]
+# check interval (minutes)
+interval = 3
+# data retention (hours)
+retention_hours = 24
+# web listen port
+port = 8080
