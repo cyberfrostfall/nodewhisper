@@ -6,26 +6,38 @@ INSTALL_DIR="/opt/sing-box-monitor"
 echo "=== Sing-Box 延迟监控 部署 ==="
 
 mkdir -p "$INSTALL_DIR/templates"
+mkdir -p "$INSTALL_DIR/proto"
+mkdir -p "$INSTALL_DIR/proto_gen"
 
-echo "[1/4] 创建 Python 虚拟环境..."
+echo "[1/5] 创建 Python 虚拟环境..."
 cd "$INSTALL_DIR"
 python3 -m venv venv
 
-echo "[2/4] 安装依赖..."
+echo "[2/5] 安装依赖..."
 ./venv/bin/pip install --upgrade pip -q
 ./venv/bin/pip install -r requirements.txt -q
 
-echo "[3/4] 配置 systemd 服务..."
+echo "[3/5] 生成 proto stubs..."
+./venv/bin/pip install grpcio-tools -q
+./venv/bin/python -m grpc_tools.protoc \
+  -I./proto \
+  --python_out=./proto_gen \
+  --grpc_python_out=./proto_gen \
+  proto/started_service.proto
+sed -i 's/^import started_service_pb2/from . import started_service_pb2/' proto_gen/started_service_pb2_grpc.py
+touch proto_gen/__init__.py
+
+echo "[4/5] 配置 systemd 服务..."
 cp sing-box-monitor.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable sing-box-monitor
 
-echo "[4/4] 启动服务..."
+echo "[5/5] 启动服务..."
 systemctl restart sing-box-monitor
 
 echo ""
 echo "=== 部署完成 ==="
-echo "请确认 config.ini 中的 api_url 指向 sing-box 设备地址"
+echo "请确认 config.ini 中的 api_url 指向 sing-box 设备的 gRPC API 地址 (host:port)"
 echo "访问 http://<本机IP>:8080 查看监控"
 echo ""
 echo "常用命令："

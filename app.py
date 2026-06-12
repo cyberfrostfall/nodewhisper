@@ -1,10 +1,13 @@
 import sqlite3
 import configparser
 import os
-import requests
+import time
+import grpc
 from flask import Flask, render_template, jsonify, request as flask_request
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
+from proto_gen import started_service_pb2, started_service_pb2_grpc
+from google.protobuf.empty_pb2 import Empty
 
 app = Flask(__name__)
 
@@ -12,15 +15,19 @@ config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.ini"))
 
 SINGBOX_API = config.get("singbox", "api_url")
-SINGBOX_SECRET = config.get("singbox", "secret")
-TEST_URL = config.get("singbox", "test_url")
-DELAY_TIMEOUT = config.getint("singbox", "timeout")
+SINGBOX_SECRET = config.get("singbox", "secret", fallback="")
 CHECK_INTERVAL_MINUTES = config.getint("monitor", "interval")
 RETENTION_HOURS = config.getint("monitor", "retention_hours")
 PORT = config.getint("monitor", "port")
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.db")
 
-HEADERS = {"Authorization": f"Bearer {SINGBOX_SECRET}"}
+SKIP_TYPES = {"direct", "block", "dns", "selector", "urltest"}
+
+
+def get_auth_metadata():
+    if SINGBOX_SECRET:
+        return [("authorization", f"Bearer {SINGBOX_SECRET}")]
+    return []
 
 
 def init_db():
@@ -47,54 +54,54 @@ def cleanup_old_data():
     conn.close()
 
 
-def get_all_proxies():
-    try:
-        resp = requests.get(f"{SINGBOX_API}/proxies", headers=HEADERS, timeout=5)
-        resp.raise_for_status()
-        data = resp.json()
-        proxies = data.get("proxies", )
-        nodes = []
-        skip_types = {"Selector", "URLTest", "Direct", "Reject", "Block", "DNS", "Fallback"}
-        for name, info in proxies.items():
-            if info.get("type") not in skip_types and not name.startswith("GLOBAL"):
-                nodes.append(name)
-        return nodes
-    except Exception as e:
-        print(f"[ERROR] Failed to get proxies: {e}")
-        return []
-
-
-def test_node_delay(node_name):
-    try:
-        resp = requests.get(
-            f"{SINGBOX_API}/proxies/{requests.utils.quote(node_name)}/delay",
-            params={"timeout": DELAY_TIMEOUT, "url": TEST_URL},
-            headers=HEADERS,
-            timeout=10
-        )
-        if resp.status_code == 200:
-            return resp.json().get("delay", None)
-        return None
-    except Exception:
-        return None
-
-
 def check_all_delays():
-    nodes = get_all_proxies()
-    if not nodes:
-        return
-    conn = sqlite3.connect(DB_PATH)
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    for node in nodes:
-        delay = test_node_delay(node)
-        conn.execute(
-            "INSERT INTO delay_records (node_name, delay_ms, timestamp) VALUES (?, ?, ?)",
-            (node, delay, now)
-        )
-    conn.commit()
-    conn.close()
-    cleanup_old_data()
-    print(f"[{now}] Checked {len(nodes)} nodes")
+    try:
+        channel = grpc.insecure_channel(SINGBOX_API)
+        stub = started_service_pb2_grpc.StartedServiceStub(channel)
+        metadata = get_auth_metadata()
+
+        groups_stream = stub.SubscribeGroups(Empty(), metadata=metadata, timeout=10)
+        groups_msg = next(groups_stream)
+        groups_stream.cancel()
+
+        group_tags = [g.tag for g in groups_msg.group]
+
+        for tag in group_tags:
+            try:
+                stub.URLTest(
+                    started_service_pb2.URLTestRequest(outboundTag=tag),
+                    metadata=metadata,
+                    timeout=10
+                )
+            except grpc.RpcError as e:
+                print(f"[WARN] URLTest failed for {tag}: {e.details()}")
+
+        time.sleep(5)
+
+        outbound_stream = stub.SubscribeOutbounds(Empty(), metadata=metadata, timeout=15)
+        outbound_list = next(outbound_stream)
+        outbound_stream.cancel()
+
+        conn = sqlite3.connect(DB_PATH)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        count = 0
+        for outbound in outbound_list.outbounds:
+            if outbound.type.lower() in SKIP_TYPES:
+                continue
+            delay = outbound.urlTestDelay if outbound.urlTestDelay > 0 else None
+            conn.execute(
+                "INSERT INTO delay_records (node_name, delay_ms, timestamp) VALUES (?, ?, ?)",
+                (outbound.tag, delay, now)
+            )
+            count += 1
+        conn.commit()
+        conn.close()
+        cleanup_old_data()
+        print(f"[{now}] Checked {count} nodes via gRPC")
+
+        channel.close()
+    except Exception as e:
+        print(f"[ERROR] check_all_delays failed: {e}")
 
 
 @app.route("/")
@@ -138,7 +145,6 @@ def api_delays():
             result[name] = []
         result[name].append({"delay": row["delay_ms"], "time": row["timestamp"]})
     return jsonify(result)
-
 
 
 @app.route("/api/report")
