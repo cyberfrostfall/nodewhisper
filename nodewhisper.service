@@ -1,0 +1,13 @@
+[Unit]
+Description=NodeWhisper - Sing-Box Proxy Monitor
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nodewhisper
+ExecStart=/opt/nodewhisper/venv/bin/python app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

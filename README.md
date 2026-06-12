@@ -25,7 +25,7 @@ nodewhisper/
 ├── requirements.txt                # Python 依赖
 ├── generate_proto.sh               # Proto stubs 生成脚本
 ├── deploy.sh                       # 自动化部署脚本
-├── sing-box-monitor.service        # systemd 服务文件
+├── nodewhisper.service        # systemd 服务文件
 ├── proto/
 │   └── started_service.proto       # sing-box gRPC 服务定义
 ├── proto_gen/
@@ -127,20 +127,20 @@ python app.py
 ### 部署为系统服务（可选）
 
 ```bash
-sudo mkdir -p /opt/sing-box-monitor
-sudo cp -r ./* /opt/sing-box-monitor/
-sudo cp config.ini /opt/sing-box-monitor/
-cd /opt/sing-box-monitor
+sudo mkdir -p /opt/nodewhisper
+sudo cp -r ./* /opt/nodewhisper/
+sudo cp config.ini /opt/nodewhisper/
+cd /opt/nodewhisper
 sudo bash deploy.sh
 ```
 
 常用管理命令：
 
 ```bash
-sudo systemctl status sing-box-monitor
-sudo journalctl -u sing-box-monitor -f
-sudo systemctl restart sing-box-monitor
-sudo systemctl stop sing-box-monitor
+sudo systemctl status nodewhisper
+sudo journalctl -u nodewhisper -f
+sudo systemctl restart nodewhisper
+sudo systemctl stop nodewhisper
 ```
 
 ### 常见问题
@@ -180,7 +180,7 @@ nodewhisper/
 ├── requirements.txt                # Python dependencies
 ├── generate_proto.sh               # Proto stubs generation script
 ├── deploy.sh                       # Automated deployment script
-├── sing-box-monitor.service        # systemd service file
+├── nodewhisper.service        # systemd service file
 ├── proto/
 │   └── started_service.proto       # sing-box gRPC service definition
 ├── proto_gen/
@@ -282,20 +282,20 @@ Open your browser and visit `http://localhost:8080` to see the dashboard.
 ### Deploy as a System Service (optional)
 
 ```bash
-sudo mkdir -p /opt/sing-box-monitor
-sudo cp -r ./* /opt/sing-box-monitor/
-sudo cp config.ini /opt/sing-box-monitor/
-cd /opt/sing-box-monitor
+sudo mkdir -p /opt/nodewhisper
+sudo cp -r ./* /opt/nodewhisper/
+sudo cp config.ini /opt/nodewhisper/
+cd /opt/nodewhisper
 sudo bash deploy.sh
 ```
 
 Useful commands:
 
 ```bash
-sudo systemctl status sing-box-monitor
-sudo journalctl -u sing-box-monitor -f
-sudo systemctl restart sing-box-monitor
-sudo systemctl stop sing-box-monitor
+sudo systemctl status nodewhisper
+sudo journalctl -u nodewhisper -f
+sudo systemctl restart nodewhisper
+sudo systemctl stop nodewhisper
 ```
 
 ### FAQ

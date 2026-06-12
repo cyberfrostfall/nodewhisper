@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-INSTALL_DIR="/opt/sing-box-monitor"
+INSTALL_DIR="/opt/nodewhisper"
 
-echo "=== Sing-Box 延迟监控 部署 ==="
+echo "=== NodeWhisper 部署 ==="
 
 mkdir -p "$INSTALL_DIR/templates"
 mkdir -p "$INSTALL_DIR/proto"
@@ -28,12 +28,12 @@ sed -i 's/^import started_service_pb2/from . import started_service_pb2/' proto_
 touch proto_gen/__init__.py
 
 echo "[4/5] 配置 systemd 服务..."
-cp sing-box-monitor.service /etc/systemd/system/
+cp nodewhisper.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable sing-box-monitor
+systemctl enable nodewhisper
 
 echo "[5/5] 启动服务..."
-systemctl restart sing-box-monitor
+systemctl restart nodewhisper
 
 echo ""
 echo "=== 部署完成 ==="
@@ -41,6 +41,6 @@ echo "请确认 config.ini 中的 api_url 指向 sing-box 设备的 gRPC API 地
 echo "访问 http://<本机IP>:8080 查看监控"
 echo ""
 echo "常用命令："
-echo "  查看状态: systemctl status sing-box-monitor"
-echo "  查看日志: journalctl -u sing-box-monitor -f"
-echo "  重启服务: systemctl restart sing-box-monitor"
+echo "  查看状态: systemctl status nodewhisper"
+echo "  查看日志: journalctl -u nodewhisper -f"
+echo "  重启服务: systemctl restart nodewhisper"
