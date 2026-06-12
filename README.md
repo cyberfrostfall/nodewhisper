@@ -16,6 +16,26 @@
 - SQLite 本地存储，数据自动清理
 - 支持 systemd 部署为后台服务
 
+### 项目结构
+
+```text
+nodewhisper/
+├── app.py                          # 主程序（Flask + gRPC 客户端）
+├── config.ini.example              # 配置文件模板
+├── requirements.txt                # Python 依赖
+├── generate_proto.sh               # Proto stubs 生成脚本
+├── deploy.sh                       # 自动化部署脚本
+├── sing-box-monitor.service        # systemd 服务文件
+├── proto/
+│   └── started_service.proto       # sing-box gRPC 服务定义
+├── proto_gen/
+│   ├── __init__.py
+│   ├── started_service_pb2.py      # 生成的 protobuf 消息类
+│   └── started_service_pb2_grpc.py # 生成的 gRPC 客户端 stub
+└── templates/
+    └── index.html                  # Web 监控面板
+```
+
 ### 环境要求
 
 - Python 3.8 或更高版本
@@ -150,6 +170,26 @@ A lightweight sing-box proxy node delay monitor. It connects to sing-box's nativ
 - Node health reports (average delay, timeout rate, anomaly detection)
 - SQLite local storage with automatic data cleanup
 - Systemd service file included for daemon deployment
+
+### Project Structure
+
+```text
+nodewhisper/
+├── app.py                          # Main app (Flask + gRPC client)
+├── config.ini.example              # Configuration template
+├── requirements.txt                # Python dependencies
+├── generate_proto.sh               # Proto stubs generation script
+├── deploy.sh                       # Automated deployment script
+├── sing-box-monitor.service        # systemd service file
+├── proto/
+│   └── started_service.proto       # sing-box gRPC service definition
+├── proto_gen/
+│   ├── __init__.py
+│   ├── started_service_pb2.py      # Generated protobuf message classes
+│   └── started_service_pb2_grpc.py # Generated gRPC client stub
+└── templates/
+    └── index.html                  # Web monitoring dashboard
+```
 
 ### Requirements
 
